@@ -80,7 +80,9 @@ else
     echo "Sending metric: '${body}'" >&2
     echo "To Pushgateway: ${pushgw_url}/metrics/job/${job}" >&2
     echo "With arguments: $(insecure) $(basicauth | sed -e 's#:.*#:redacted#')" >&2
-    echo "${body}" | curl $(insecure) $(basicauth) --fail --data-binary @- "${pushgw_url}/metrics/job/${job}" 2>&1
+    echo "${body}" | curl $(insecure) $(basicauth) --fail \
+        --retry 30 --retry-delay 2 --retry-max-time 60 --retry-connrefused \
+        --data-binary @- "${pushgw_url}/metrics/job/${job}" 2>&1
     return_code=$?
     if [ $return_code -eq 0 ]; then
         echo "Success: metric pushed"
